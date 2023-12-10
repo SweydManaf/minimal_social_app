@@ -1,19 +1,62 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:minimalsocial_app/components/my_button.dart';
 import 'package:minimalsocial_app/components/my_textfield.dart';
+import 'package:minimalsocial_app/helper/helper_functions.dart';
 
-class RegisterPage extends StatelessWidget {
-  void Function()? onTap;
-  RegisterPage({super.key, required this.onTap});
+class RegisterPage extends StatefulWidget {
+  final void Function()? onTap;
+  const RegisterPage({super.key, required this.onTap});
 
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
   // text controllers
   final TextEditingController usernameControler = TextEditingController();
+
   final TextEditingController emailController = TextEditingController();
+
   final TextEditingController passwordControler = TextEditingController();
+
   final TextEditingController confirmPwControler = TextEditingController();
 
   // register method
-  void register() {}
+  void registerUser() async {
+    // show loading circle
+    showDialog(
+      context: context,
+      builder: (context) => Center(child: CircularProgressIndicator()),
+    );
+
+    // make sure passwords match
+    if (passwordControler.text != confirmPwControler.text) {
+      // pop loading circle
+      Navigator.pop(context);
+
+      // show error message to user
+      displayMessageToUser("Passwords dont't match!", context);
+    }
+    // if do passwords do match
+    else {
+      // try creating the user
+      try {
+        // create the user
+        UserCredential? userCrendential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+                email: emailController.text, password: passwordControler.text);
+        // pop loading circle
+        Navigator.pop(context);
+      } on FirebaseException catch (e) {
+        // pop loading circle
+        Navigator.pop(context);
+
+        // display error message to user
+        displayMessageToUser(e.code, context);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +84,7 @@ class RegisterPage extends StatelessWidget {
             ),
 
             const SizedBox(
-              height: 50,
+              height: 30,
             ),
 
             // username textfield
@@ -103,7 +146,7 @@ class RegisterPage extends StatelessWidget {
             // register in button
             MyButton(
               text: "Register",
-              onTap: register,
+              onTap: registerUser,
             ),
 
             const SizedBox(
@@ -116,7 +159,7 @@ class RegisterPage extends StatelessWidget {
               children: [
                 Text("Already have an account?"),
                 GestureDetector(
-                  onTap: onTap,
+                  onTap: widget.onTap,
                   child: Text(
                     " Login Here",
                     style: TextStyle(fontWeight: FontWeight.bold),

@@ -1,18 +1,46 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:minimalsocial_app/components/my_button.dart';
 import 'package:minimalsocial_app/components/my_textfield.dart';
+import 'package:minimalsocial_app/helper/helper_functions.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   void Function()? onTap;
 
   LoginPage({super.key, required this.onTap});
 
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   // text controllers
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordControler = TextEditingController();
 
   // login method
-  void login() {}
+  void login() async {
+    // show loading circle
+    showDialog(
+      context: context,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    // try sign in
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailController.text, password: passwordControler.text);
+
+      // pop loading circle
+      if (context.mounted) Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      // pop loading circle
+      Navigator.pop(context);
+      displayMessageToUser(e.code, context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +123,7 @@ class LoginPage extends StatelessWidget {
               children: [
                 Text("Don't have an account?"),
                 GestureDetector(
-                  onTap: onTap,
+                  onTap: widget.onTap,
                   child: Text(
                     " Register Here",
                     style: TextStyle(fontWeight: FontWeight.bold),
