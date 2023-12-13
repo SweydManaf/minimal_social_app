@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:minimalsocial_app/components/my_button.dart';
@@ -46,7 +47,12 @@ class _RegisterPageState extends State<RegisterPage> {
         UserCredential? userCrendential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
                 email: emailController.text, password: passwordControler.text);
+
+        // create a user document and add to firestore
+        createUserDocument(userCrendential);
+
         // pop loading circle
+        // if (context.mounted)
         Navigator.pop(context);
       } on FirebaseException catch (e) {
         // pop loading circle
@@ -58,6 +64,19 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  // create a user document and collect them in firestore
+  Future<void> createUserDocument(UserCredential? userCredential) async {
+    if (userCredential != null && userCredential.user != null) {
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(userCredential.user!.email)
+          .set({
+        "email": userCredential.user!.email,
+        "username": usernameControler.text,
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,109 +84,112 @@ class _RegisterPageState extends State<RegisterPage> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(25.0),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            // logo
-            Icon(
-              Icons.person,
-              size: 80,
-              color: Theme.of(context).colorScheme.inversePrimary,
-            ),
+          child: SingleChildScrollView(
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              // logo
+              Icon(
+                Icons.person,
+                size: 80,
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
 
-            const SizedBox(
-              height: 25,
-            ),
+              const SizedBox(
+                height: 25,
+              ),
 
-            // app name
-            Text(
-              "M I N I M A L",
-              style: TextStyle(fontSize: 20),
-            ),
+              // app name
+              Text(
+                "M I N I M A L",
+                style: TextStyle(fontSize: 20),
+              ),
 
-            const SizedBox(
-              height: 30,
-            ),
+              const SizedBox(
+                height: 30,
+              ),
 
-            // username textfield
-            MyTextField(
-                controller: usernameControler,
-                hintText: "Username",
-                obscureText: false),
+              // username textfield
+              MyTextField(
+                  controller: usernameControler,
+                  hintText: "Username",
+                  obscureText: false),
 
-            const SizedBox(
-              height: 10,
-            ),
+              const SizedBox(
+                height: 10,
+              ),
 
-// email textfield
-            MyTextField(
-                controller: emailController,
-                hintText: "Email",
-                obscureText: false),
+              // email textfield
+              MyTextField(
+                  controller: emailController,
+                  hintText: "Email",
+                  obscureText: false),
 
-            const SizedBox(
-              height: 10,
-            ),
+              const SizedBox(
+                height: 10,
+              ),
 
-// password textfield
-            MyTextField(
-                controller: passwordControler,
-                hintText: "Password",
-                obscureText: true),
+              // password textfield
+              MyTextField(
+                  controller: passwordControler,
+                  hintText: "Password",
+                  obscureText: true),
 
-            const SizedBox(
-              height: 10,
-            ),
+              const SizedBox(
+                height: 10,
+              ),
 
-            // password textfied
-            MyTextField(
-                controller: confirmPwControler,
-                hintText: "Confirm Password",
-                obscureText: true),
+              // password textfied
+              MyTextField(
+                  controller: confirmPwControler,
+                  hintText: "Confirm Password",
+                  obscureText: true),
 
-            const SizedBox(
-              height: 10,
-            ),
+              const SizedBox(
+                height: 10,
+              ),
 
-            // forgot password
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  "Forgot Paasword?",
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary),
-                ),
-              ],
-            ),
-
-            const SizedBox(
-              height: 25,
-            ),
-
-            // register in button
-            MyButton(
-              text: "Register",
-              onTap: registerUser,
-            ),
-
-            const SizedBox(
-              height: 25,
-            ),
-
-            // dont't have an account? register here
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Already have an account?"),
-                GestureDetector(
-                  onTap: widget.onTap,
-                  child: Text(
-                    " Login Here",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+              // forgot password
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    "Forgot Paasword?",
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary),
                   ),
-                ),
-              ],
-            )
-          ]),
+                ],
+              ),
+
+              const SizedBox(
+                height: 25,
+              ),
+
+              // register in button
+              MyButton(
+                text: "Register",
+                onTap: registerUser,
+              ),
+
+              const SizedBox(
+                height: 25,
+              ),
+
+              // dont't have an account? register here
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Already have an account?"),
+                  GestureDetector(
+                    onTap: widget.onTap,
+                    child: Text(
+                      " Login Here",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              )
+            ]),
+          ),
         ),
       ),
     );
